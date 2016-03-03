@@ -1,0 +1,29 @@
+---
+abstract: 'Perl extension for Mac OS X Volumes management'
+author:
+  - 'renesenses <renesenses@gmail.com>'
+build_requires:
+  ExtUtils::MakeMaker: 0
+configure_requires:
+  ExtUtils::MakeMaker: 0
+dynamic_config: 0
+generated_by: 'ExtUtils::MakeMaker version 7.1, CPAN::Meta::Converter version 2.120921'
+license: unknown
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: My-ReneSenses-MyOsxTools
+no_index:
+  directory:
+    - t
+    - inc
+requires:
+  Carp: 1.29
+  Data::Dumper: v2.1.54
+  File::stat: 1.02
+  Mac::Errors: 1.18
+  Mac::PropertyList: 1.41
+  Ref::Util: 0.008
+  Tie::File: 0.99
+  XML::Simple: 2.22
+version: 0.01
