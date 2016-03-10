@@ -12,7 +12,12 @@ use File::stat;
 use Mac::Errors qw( $MacError %MacErrors );
 use Tie::File;
 use Carp;
+use File::chdir;
 
+use utf8;
+
+require Test::Modern;
+require Test::File::Contents;
 require Exporter;
 
 our @ISA = qw(Exporter);
@@ -28,6 +33,7 @@ our @ISA = qw(Exporter);
 
 our %EXPORT_TAGS = ( 'all' => [ qw(
 	$default_tmp_file
+	parse_df
 	check_os
 	get_os_error
 	is_localvolume	
@@ -42,6 +48,7 @@ our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 
 our @EXPORT = qw(
 	$default_tmp_file
+	parse_df
 	check_os
 	get_os_error
 	is_localvolume	
@@ -62,6 +69,86 @@ my $default_perl;
 my $vol_file;
 # my %vol_perl;
 my $vol_perl;
+
+=head1 FUNCTION parse_df
+
+ This function parses df command result keeping into account space char in volume's names .
+
+=cut
+
+# df command displays by default 9 columns
+# Columns names are :
+# 'Filesystem','512-blocks','Used','Available','Capacity','iused','ifree','%iused','Mounted on'
+# Columns associated regex
+# 'Filesystem'	:
+# '512-blocks'	: [0-9]+
+# 'Used'		: [0-9]+
+# 'Available'	: [0-9]+
+# 'Capacity'	: (?<!-)\b([1-3]?\d{1,2}|100)\b% 
+# 'iused'		: [0-9]+
+# 'ifree'		: [0-9]+
+# '%iused'		: (?<!-)\b([1-3]?\d{1,2}|100)\b% 
+# 'Mounted on'	: /^\//	
+
+# Process : split from \s+ then check first res line matches columns_names and following lines match columns 1 to 8 (not first and last one !)  
+sub parse_df {
+	my $input_loc = shift;
+	print Dumper($input_loc);
+#	if (-d $input_loc) { local $CWD = $input_loc; };
+	my $SEP_FIELD = qw/\s+/;
+	my $SEP_LINE = qw/\n+/;
+	my @columns_names = qw(Filesystem 512-blocks Used Available Capacity iused ifree %iused Mounted on);
+ 	my @rs;
+	my $cmd = `df .`;
+	
+	# split by eol
+	my @res_lines = split($SEP_LINE,$cmd);
+#	print Dumper($cmd);
+
+# JUST TO TZST TO TRY
+#	for my $ind ( 0 .. $#res ) {
+#		splice(@res_lines,$ind,1,split($SEP_FIELD,$line);
+#	}
+
+#	for my $line ( @res_lines ) {
+#		print Dumper($line);
+
+#		my @ssplit = split('\s+',$line);
+#		print Dumper(join(' ',@ssplit));
+#		my @tsplit = split('\t+',$line);
+#		print Dumper(join('|',@tsplit));
+#	}
+
+ 
+# 	print join("|",$res_lines[0]),"\n";
+ #	print join("|",@columns_names),"\n";
+ 
+ # 		
+
+	my @rs_header = split($SEP_FIELD,$res_lines[0]);
+
+
+#	print Dumper(join(' ',@rs_header));
+#	print Dumper(join(' ',@columns_names));
+ 	if ( !( join(" ",@rs_header) eq join(" ",@columns_names) ) ) {
+ 		croak "df command result columns names differ from expected";
+ 	}
+ 	else {
+ 		for my $line (1..$#res_lines) {
+ 			my @content = split($SEP_FIELD,$res_lines[$line]);
+			my $rs_content = join(' ',@content);	
+ 			if ( $rs_content =~ /\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+(([0-9]|[1-9][0-9]|100)%)\s+([0-9]+)\s+([0-9]+)\s+(([0-9]|[1-9][0-9]|100)%)\s+/ ) {
+ 				@rs = ($`, $1, $2, $3, $4, $6, $7, $8, $');
+ 				
+ 			}
+ 			else {
+ 				croak "Unexpected error";
+ 			}	
+ 		}
+ 	}	
+ 	
+ 	return @rs;	 
+}
 
 =head1 FUNCTION check_os
 

@@ -1,0 +1,4 @@
+#!/bin/bash
+echo out
+echo >&2 err
+exit 1

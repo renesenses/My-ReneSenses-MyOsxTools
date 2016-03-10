@@ -8,12 +8,16 @@ use strict;
 use warnings;
 use Test::Modern;
 
+
 use My::ReneSenses::MyOsxTools;
 
 use Carp;
 
 	check_os();
 
+	use_ok('My::ReneSenses::MyOsxTools');
+	
+	can_ok('My::ReneSenses::MyOsxTools','is_local_volume');
 
 	my @input_vols = ('Macintosh_HD', 'foo', 'TIGER');
 	my @res_input_vols = map { is_localvolume($_) } ( @input_vols ); 
